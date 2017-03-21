@@ -11,6 +11,7 @@ public class UDPServer {
 		serverSocket.receive(receivePacket);
 		String sentence = new String(receivePacket.getData()); InetAddress IPAddress = receivePacket.getAddress(); int port = receivePacket.getPort();
 		String capitalizedSentence = sentence.toUpperCase();
+		System.out.println("Receiving from Client: " + sentence);
 		sendData = capitalizedSentence.getBytes();
 		DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress,
 		port);
