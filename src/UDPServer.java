@@ -40,7 +40,7 @@ class UDPServer {
 			
 			boolean fileExist;
 			boolean methodTokenValid;
-			String htmlDocumentBuffer = readFile(ERRORFILE);
+			String htmlDocumentBuffer = readFile(requestFromClient[1]);
 			
 			
 			if(requestFromClient.length !=3){
