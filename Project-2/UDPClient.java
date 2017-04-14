@@ -2,6 +2,8 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -12,11 +14,11 @@ import java.net.InetAddress;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.Scanner;
+import java.security.MessageDigest;
 
 class UDPClient {
 	public static void main(String args[]) throws Exception {
 
-		//Reads in the keyboard stream by bytes and converts them into ASCII.
 		BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
 		DatagramSocket clientSocket = new DatagramSocket();
 		InetAddress IPAddress = null;
@@ -27,12 +29,12 @@ class UDPClient {
 		int serverPortNumber;
 		Scanner scan = new Scanner(System.in);
 		while(true){		
-			System.out.print("Enter the server IP address: ");
+			System.out.print("Enter the IP Adress: ");
 			serverIP = scan.nextLine();
 			try{
 				IPAddress = InetAddress.getByName(serverIP);
 			} catch(UnknownHostException e){
-				System.out.println("Invalid host name or the host name is unreachable.");
+				System.out.println("Invalid host..");
 				continue;
 			}
 			break;
@@ -43,14 +45,16 @@ class UDPClient {
 		String sentence;
 		String[] request;
 		do{
-			System.out.println("Type your HTTP Request and press Enter:");
+			System.out.println("Enter HTTP request: ");
 			sentence = inFromUser.readLine();
 			request = sentence.split("[ ]");
 		}while(request.length != 3);
+		
+		String filename = request[1];
 
 		File file = new File(System.getProperty("user.dir"), request[1]);
 
-		//sending the data to the server.
+		
 		sendData = sentence.getBytes();
 		DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, serverPortNumber);
 		clientSocket.send(sendPacket); 
@@ -63,7 +67,7 @@ class UDPClient {
 		try{
 		clientSocket.receive(receivePacket);
 		} catch(SocketTimeoutException e){
-			System.out.println("Too much time has gone by, connection is closed.");
+			System.out.println("Connection timeout.");
 			clientSocket.close();
 		}
 		if(!clientSocket.isClosed()){			
@@ -74,7 +78,7 @@ class UDPClient {
 		if(receivedPacketHeaderData.length > 3){
 			System.out.println(receivedPacketData);
 
-			//Receiving the header information
+			
 			int indexOfcrlf=0;
 	
 			for(int i=0; i < 4; i++){
@@ -88,14 +92,16 @@ class UDPClient {
 				clientSocket.receive(receivePacket);
 				receivedPacketData = new String(receivePacket.getData());
 				System.out.println(receivedPacketData);
-				//clear the received data
+				
 				receiveData = emptyData.clone();				
-
-				//eos - end of stream, which indicates the first occurrence of an null byte 
+				
 				eos = receivedPacketData.indexOf(0);
 				fileData = fileData + receivedPacketData;
 			}
 			clientSocket.close();
+			
+			
+			
 			Writer writer = null;
 			try {
 				fileData = fileData.trim();
@@ -112,8 +118,43 @@ class UDPClient {
 			}
 		} else {
 			file =null;
-			System.out.println("Invalid response from Server.");
+			System.out.println("Error: Bad response");
 		}
-	} 
+	  } 
+		
+	}
+	
+	public static byte[] createChecksum(String filename) throws
+    Exception
+	{
+	  InputStream fis =  new FileInputStream(filename);
+	
+	  byte[] buffer = new byte[1024];
+	  MessageDigest complete = MessageDigest.getInstance("MD5");
+	  int numRead;
+	  do {
+	   numRead = fis.read(buffer);
+	   if (numRead > 0) {
+	     complete.update(buffer, 0, numRead);
+	     }
+	   } while (numRead != -1);
+	  fis.close();
+	  return complete.digest();
+	}
+
+
+	public static String getMD5Checksum(String filename) throws Exception {
+	  byte[] b = createChecksum(filename);
+	  String result = "";
+	  for (int i=0; i < b.length; i++) {
+	    result +=
+	       Integer.toString( ( b[i] & 0xff ) + 0x100, 16).substring( 1 );
+	   }
+	  return result;
+	}
+	
+	public static boolean checksumValidated(String checksumBefore, String checksumAfter)
+	{
+		return checksumBefore == checksumAfter;
 	}
 } 
