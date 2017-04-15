@@ -6,8 +6,6 @@ import java.util.Arrays;
  * This is the Server side Error Detection
  * It generates the checksum using MD5 
  * 
- * @author Walter Conway
- * @author Matt Garmon
  * 
  */
 public class ErrorDetector {
