@@ -2,6 +2,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
+/*
+ * Authored by Garrett Jacobsen and Andrew Peters
+ */
 
 public class Fragment {
 	private FragmentHeader mHeader;	
