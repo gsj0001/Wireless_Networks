@@ -27,7 +27,7 @@ class UDPClient {
 		byte[] receiveData = new byte[128];
 		String serverIP;
 		int serverPortNumber;
-		
+
 		double lossProb;
 		double corruptProb;
 		Gremlin gremlin = New Gremlin(lossProb, corruptProb);
@@ -152,11 +152,6 @@ class UDPClient {
 
 				}
 			}
-		} else {
-			file = null;
-			System.out.println("Error: Bad response");
-		}
-	  } 
 		
 	}
 	
