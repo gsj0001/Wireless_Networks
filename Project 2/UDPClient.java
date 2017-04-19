@@ -30,9 +30,26 @@ class UDPClient {
 
 		double lossProb;
 		double corruptProb;
-		Gremlin gremlin = New Gremlin(lossProb, corruptProb);
+		double delayProb;
+		double delayInMilliseconds;
+		Gremlin gremlin = new Gremlin(lossProb, corruptProb);
 
 		Scanner scan = new Scanner(System.in);
+		
+		System.out.print("Enter the probability of a lost packet: ");
+		lossProb = scan.nextDouble();
+		
+		System.out.print("Enter the probability of a corrupted packet: ");
+		corruptProb = scan.nextDouble();
+		
+		System.out.print("Enter the probability of a delayed packet: ");
+		delayProb = scan.nextDouble();
+		
+		if(delayProb > 0)
+		{
+			System.out.print("Enter the length of delay for delayed packets: ");
+			delayInMilliseconds = scan.nextDouble();
+		}
 		while(true){		
 			System.out.print("Enter the IP Adress: ");
 			serverIP = scan.nextLine();

@@ -7,10 +7,12 @@ public class Gremlin {
 	
 	double packetLossProb;
 	double corruptedPacketProb;
+	double delayedPacketProb;
 	double successProb;
 
 	int packetsLost = 0;
 	int packetsCorrupt = 0;
+	int packetsDelayed = 0;
 	int successPackets = 0;
 
 	Random randomNum;
