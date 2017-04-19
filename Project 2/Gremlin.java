@@ -1,5 +1,6 @@
 import java.net.DatagramPacket;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 
 
@@ -9,6 +10,7 @@ public class Gremlin {
 	double corruptedPacketProb;
 	double delayedPacketProb;
 	double successProb;
+	double delayTime; //in ms
 
 	int packetsLost = 0;
 	int packetsCorrupt = 0;
@@ -19,11 +21,14 @@ public class Gremlin {
 	DatagramPacket packet;
 
 	
-	public Gremlin(double lossProbability, double corruptProbability){
+	public Gremlin(double lossProbability, double corruptProbability, double delayProbability, double delay){
 		randomNum = new Random();
+		delayTime = delay;
+		
 		packetLossProb = lossProbability;
 		corruptedPacketProb = corruptProbability;
-		successProb = 1 - (lossProbability + corruptProbability);
+		delayedPacketProb = delayProbability;
+		successProb = 1 - (lossProbability + corruptProbability + delayProbability);
 	}
 
 	
@@ -91,6 +96,16 @@ public class Gremlin {
 	public DatagramPacket looseDatagramPacket(){
 		return null;
 	}
+	
+	public DatagramPacket delayDatagramPacket(){
+		try {
+			TimeUnit.MILLISECONDS.wait((long)delayTime);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return packet;
+	}
 
 	
 	public DatagramPacket passDatagramPacket(){
@@ -109,6 +124,11 @@ public class Gremlin {
 			packetsCorrupt++;
 
 			return corruptDatagramPacket();
+			
+		} else if( sample <= getSuccessProb() + getCorruptProb() + getDelayProb()){
+			packetsDelayed++;
+			
+			return delayDatagramPacket();
 		} else{
 			packetsLost++;
 
@@ -136,6 +156,16 @@ public class Gremlin {
 	public void setCorruptProb(double corruptedPacketProb) {
 		this.corruptedPacketProb = corruptedPacketProb;
 	}
+	
+	public double getDelayProb() {
+		
+		return delayedPacketProb;
+	}
+
+	
+	public void setDelayProb(double delayedPacketProb) {
+		this.delayedPacketProb = delayedPacketProb;
+	}
 
 	
 	public double getSuccessProb() {
@@ -145,6 +175,16 @@ public class Gremlin {
 	
 	public void setSuccessProb(double successProb) {
 		this.successProb = successProb;
+	}
+	
+	public double getDelayTime() {
+		
+		return delayTime;
+	}
+
+	
+	public void setDelayTime(double time) {
+		this.delayTime = time;
 	}
 
 
