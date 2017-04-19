@@ -100,58 +100,58 @@ class UDPClient {
 		// 	System.out.println(receivedPacketData);
 
 			
-			int index = 0;
+		int index = 0;
 
-			for(int i = 0; i < 4; i++){
+		for(int i = 0; i < 4; i++){
 
-				index = csarData.indexOf('\n', index + 1);
-			}
+			index = csarData.indexOf('\n', index + 1);
+		}
 
-			String fileData = csarData.substring(index + 1);
-			int emptyIndex = csarData.indexOf(0);
-			String dataFromFile "";
-			if(emptyIndex != -1){
-				dataFromFile = fileData.subSequence(0, emptyIndex).toString();
-			}
-			else{
-				System.out.println("No null character");
-			}
+		String fileData = csarData.substring(index + 1);
+		int emptyIndex = csarData.indexOf(0);
+		String dataFromFile "";
+		if(emptyIndex != -1){
+			dataFromFile = fileData.subSequence(0, emptyIndex).toString();
+		}
+		else{
+			System.out.println("No null character");
+		}
 
-			// int eos=-1;
-			// while(eos == -1){
+		// int eos=-1;
+		// while(eos == -1){
 
-			// 	receivePacket = new DatagramPacket(receiveData, receiveData.length); 
-			// 	clientSocket.receive(receivePacket);
-			// 	receivedPacketData = new String(receivePacket.getData());
-			// 	System.out.println(receivedPacketData);
-				
-			// 	receiveData = emptyData.clone();				
-				
-			// 	eos = receivedPacketData.indexOf(0);
-			// 	fileData = fileData + receivedPacketData;
-			// }
-			// clientSocket.close();
+		// 	receivePacket = new DatagramPacket(receiveData, receiveData.length); 
+		// 	clientSocket.receive(receivePacket);
+		// 	receivedPacketData = new String(receivePacket.getData());
+		// 	System.out.println(receivedPacketData);
 			
+		// 	receiveData = emptyData.clone();				
 			
-			
-			Writer writer = null;
+		// 	eos = receivedPacketData.indexOf(0);
+		// 	fileData = fileData + receivedPacketData;
+		// }
+		// clientSocket.close();
+		
+		
+		
+		Writer writer = null;
+		try {
+			dataFromFile = fileData.trim();
+			writer = new BufferedWriter(new OutputStreamWriter(	new FileOutputStream(file), "UTF-8"));
+			writer.write(dataFromFile);
+			writer.close();
+
+		} catch (IOException ex) {
+
+		} finally {
+
 			try {
-				dataFromFile = fileData.trim();
-				writer = new BufferedWriter(new OutputStreamWriter(	new FileOutputStream(file), "UTF-8"));
-				writer.write(dataFromFile);
 				writer.close();
 
-			} catch (IOException ex) {
+			} catch (Exception ex) {
 
-			} finally {
-
-				try {
-					writer.close();
-
-				} catch (Exception ex) {
-
-				}
 			}
+		}
 		
 	}
 	
