@@ -43,45 +43,46 @@ public class Gremlin {
 		if(sample <=.5){
 			//randomly selects a byte from the data and then from that byte selects a bit and flips it
 			//does this once
-			int randomIndex = randomNum.nextInt(getDatagramPacket().getData().length);
-			byte byteVar = data[randomIndex];
-			int byteToInt = byteVar >= 0?byteVar:256 + byteVar;
-			//Selects a random bit from the  randomly selected byte from the data to flip
-			int x = randomNum.nextInt(8-(1-1)) % 8;
-			int flippedInt = byteToInt ^ 1 << x;
-			//converts the int back into a byte
-			data[randomIndex]=(byte)flippedInt;
+				int randomIndex = randomNum.nextInt(getDatagramPacket().getData().length);
+				byte byteVar = data[randomIndex];
+				int byteToInt = byteVar >= 0?byteVar:256 + byteVar;
+				//Selects a random bit from the  randomly selected byte from the data to flip
+				int x = randomNum.nextInt(8-(1-1)) % 8;
+				int flippedInt = byteToInt ^ 1 << x;
+				//converts the int back into a byte
+				data[randomIndex]=(byte)flippedInt;
 			
 		}else if(sample <= (.3 + .5)){
 			//randomly selects a byte from the data and then from that byte selects a bit and flips it
 			//does this twice
 			for(int i = 0; i<2; i++){
-			int randomIndex = randomNum.nextInt(getDatagramPacket().getData().length);
-			byte byteVar = data[randomIndex];
-			int byteToInt = byteVar >= 0?byteVar:256 + byteVar;
-			int x = randomNum.nextInt(8-(1-1)) % 8;
-			int flippedInt = byteToInt ^ 1 << x;
-			//converts the int back into a byte
-			data[randomIndex]=(byte)flippedInt;
+
+				int randomIndex = randomNum.nextInt(getDatagramPacket().getData().length);
+				byte byteVar = data[randomIndex];
+				int byteToInt = byteVar >= 0?byteVar:256 + byteVar;
+				int x = randomNum.nextInt(8-(1-1)) % 8;
+				int flippedInt = byteToInt ^ 1 << x;
+				//converts the int back into a byte
+				data[randomIndex]=(byte)flippedInt;
 			}
 			
 		} else{
 			//randomly selects a byte from the data and then from that byte selects a bit and flips it
 			//does this three times
 			for(int i = 0; i<3; i++){
-			int randomIndex = randomNum.nextInt(getDatagramPacket().getData().length);
-			byte byteVar = data[randomIndex];
-			int byteToInt = byteVar >= 0?byteVar:256 + byteVar;
-			int x = randomNum.nextInt(8-(1-1)) % 8;
-			int flippedInt = byteToInt ^ 1 << x;
-			//converts the int back into a byte
-			data[randomIndex]=(byte)flippedInt;
+
+				int randomIndex = randomNum.nextInt(getDatagramPacket().getData().length);
+				byte byteVar = data[randomIndex];
+				int byteToInt = byteVar >= 0?byteVar:256 + byteVar;
+				int x = randomNum.nextInt(8-(1-1)) % 8;
+				int flippedInt = byteToInt ^ 1 << x;
+				//converts the int back into a byte
+				data[randomIndex]=(byte)flippedInt;
 			}
 		}
+
 		getDatagramPacket().setData(data);
 		return getDatagramPacket();
-	
-
 	}
 
 	
@@ -98,11 +99,11 @@ public class Gremlin {
 	public DatagramPacket filter(DatagramPacket datagram){
 		loadDatagramPacket(datagram);
 		double sample = randomNum.nextDouble();
-		if(sample <= getmPassProbability()){
+		if(sample <= getSuccessProb()){
 			successPackets++;
 
 			return passDatagramPacket();
-		} else if( sample <= getmPassProbability() + getmCorruptProbablility()){
+		} else if( sample <= getSuccessProb() + getCorruptProb()){
 			packetsCorrupt++;
 
 			return corruptDatagramPacket();
@@ -114,33 +115,33 @@ public class Gremlin {
 	}
 
 	
-	public double getmLossProbability() {
+	public double getLossProb() {
 		return packetLossProb;
 	}
 
 	
-	public void setmLossProbability(double packetLossProb) {
+	public void setLossProb(double packetLossProb) {
 		this.packetLossProb = packetLossProb;
 	}
 
 	
-	public double getmCorruptProbablility() {
+	public double getCorruptProb() {
 				
 		return corruptedPacketProb;
 	}
 
 	
-	public void setmCorruptProbablility(double corruptedPacketProb) {
+	public void setCorruptProb(double corruptedPacketProb) {
 		this.corruptedPacketProb = corruptedPacketProb;
 	}
 
 	
-	public double getmPassProbability() {
+	public double getSuccessProb() {
 		return successProb;
 	}
 
 	
-	public void setmPassProbability(double successProb) {
+	public void setSuccessProb(double successProb) {
 		this.successProb = successProb;
 	}
 
