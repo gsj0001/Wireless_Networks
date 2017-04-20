@@ -6,7 +6,7 @@ import java.util.ArrayList;
 public class ClientSegAndReassembly {
 
 	ArrayList<Fragment> listOfFrags;
-	ErrorDetector ed = new ErrorDetector();
+	ErrorDetector detectError = new ErrorDetector();
 	byte[] reassembledData;
 	
 	
