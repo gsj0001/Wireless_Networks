@@ -9,7 +9,7 @@ import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class GoBackN {
+public class GoBackNServer {
 	ServerSegAndReassembly segFragments; //has the separated fragments
 
 	int sucessfully_transmitted=0;
@@ -48,7 +48,7 @@ public class GoBackN {
 	 * @param ipAddress of the client
 	 * @param trace will print some information
 	 */
-	public GoBackN(ServerSegAndReassembly sar, int client_port, InetAddress ipAddress, boolean trace){
+	public GoBackNServer(ServerSegAndReassembly sar, int client_port, InetAddress ipAddress, boolean trace){
 		segFragments = sar;
 		clientPortNumber = client_port;
 		clientIPAddr = ipAddress;

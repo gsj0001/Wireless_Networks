@@ -32,7 +32,7 @@ class UDPClient {
 		double corruptProb;
 		double delayProb;
 		double delayInMilliseconds;
-		Gremlin gremlin = new Gremlin(lossProb, corruptProb);
+		Gremlin gremlin = new Gremlin(lossProb, corruptProb, delayProb);
 
 		Scanner scan = new Scanner(System.in);
 		
@@ -119,7 +119,7 @@ class UDPClient {
 			
 		int index = 0;
 
-		for(int i = 0; i < 4; i++){
+		for(int i = 0; i < 32; i++){
 
 			index = csarData.indexOf('\n', index + 1);
 		}

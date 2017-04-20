@@ -25,7 +25,7 @@ public class ServerSegAndReassembly {
 
 		for(int i =0; i<(double)dataToSegment.length/110; i++){
 			Fragment newFragment = new Fragment(Arrays.copyOfRange(dataToSegment, start, end));
-			newFragment.getmHeader().setSequenceID((byte)(i%32));
+			newFragment.getmHeader().setSequenceID((byte)(i%64));
 			if((i+1)<(double)dataToSegment.length/110){
 				newFragment.getmHeader().setmEndOfSequence((byte)0);
 			} else{
