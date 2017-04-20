@@ -24,11 +24,12 @@ class UDPServer {
 		
 		DatagramSocket serverSocket = new DatagramSocket(10077);
 		final String ERROR_TXT = "error.txt";
-		byte[] receiveData = new byte[128];
-		byte[] emptyDataSet = new byte[128];
-		byte[] sendData  = new byte[128];
+		byte[] receiveData = new byte[512];
+		byte[] emptyDataSet = new byte[512];
+		byte[] sendData  = new byte[512];
 		
-		
+		ServerSegAndReassembly ssar;
+
 		while(true) {
 			DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 			serverSocket.receive(receivePacket);
@@ -71,24 +72,33 @@ class UDPServer {
 			String headerAndData = new String(headerInformation + "\r\n"+ htmlDocumentBuffer);
 			byte[] headerAndDataByteArray = headerAndData.getBytes();
 			
+			ByteArrayOutputStream out = new ByteArrayOutputStream();
+			out.write(headerAndDataByteArray);
+			out.write(emptyDataSet);
 
-			DatagramPacket sendPacket;
-			int start = 0;
-			int end = 128;
-			for(int i = 0; i < (double)headerAndDataByteArray.length/128 ; i++){
-				System.out.println(i);
-				byte[] dataInformation = Arrays.copyOfRange(headerAndDataByteArray, start, end);
-				System.out.println(new String(dataInformation));
-				sendData = dataInformation;
-				sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
-				serverSocket.send(sendPacket);
-				start = end;
-				end = end+128;
-			}
-			sendData = new byte[1];
-			sendData[0]=0;
-			sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
-			serverSocket.send(sendPacket);
+			ssar = new ServerSegAndReassembly(out.toByteArray());
+			out.close();
+			serverSocket.close();
+			GoBackNServer gbn = new GoBackNServer(ssar, port, IPAddress);
+			gbn.beginTransmission();
+			break;
+			// DatagramPacket sendPacket;
+			// int start = 0;
+			// int end = 128;
+			// for(int i = 0; i < (double)headerAndDataByteArray.length/128 ; i++){
+			// 	System.out.println(i);
+			// 	byte[] dataInformation = Arrays.copyOfRange(headerAndDataByteArray, start, end);
+			// 	System.out.println(new String(dataInformation));
+			// 	sendData = dataInformation;
+			// 	sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
+			// 	serverSocket.send(sendPacket);
+			// 	start = end;
+			// 	end = end+128;
+			// }
+			// sendData = new byte[1];
+			// sendData[0]=0;
+			// sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
+			// serverSocket.send(sendPacket);
 
 		}
 	}
