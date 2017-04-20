@@ -91,7 +91,7 @@ public class GoBackN {
 	 * Recieves the acks and naks from the client and starts the process to send back the fragments
 	 * to the client as well dequeues the naks to send those fragments to the client.
 	 */
-	public void start(){
+	public void beginTransmission(){
 
 		countDownTimer = new Timer();
 		countDownTimer.schedule(new PerTickBookKeeping(), 1,1);
