@@ -42,7 +42,7 @@ public class ErrorDetector {
 	 * @param fragment 
 	 * @return true if the checksum matches the input fragment checksum false otherwise
 	 */
-	public boolean validateCheckSum(Fragment fragment){
+	public static boolean validateCheckSum(Fragment fragment){
 		MessageDigest md;
 		try {
 			md = MessageDigest.getInstance("MD5");

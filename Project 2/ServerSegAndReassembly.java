@@ -21,19 +21,24 @@ public class ServerSegAndReassembly {
 	 */
 	public void segmentData(){
 		int start = 0;
-		int end = 110;
+		int end = 494;
 
-		for(int i =0; i<(double)dataToSegment.length/110; i++){
+		for(int i = 0; i < (double)dataToSegment.length / 494; i++){
 			Fragment newFragment = new Fragment(Arrays.copyOfRange(dataToSegment, start, end));
-			newFragment.getmHeader().setSequenceID((byte)(i%64));
-			if((i+1)<(double)dataToSegment.length/110){
+			newFragment.getmHeader().setSequenceID((byte)(i % 64));
+
+			if((i + 1) < (double)dataToSegment.length / 494){
+
 				newFragment.getmHeader().setmEndOfSequence((byte)0);
-			} else{
+			} 
+			else{
+
 				newFragment.getmHeader().setmEndOfSequence((byte)1);
 			}
+
 			addFragment(detectError.generateCheckSum(newFragment));
 			start = end;
-			end = end + 110;
+			end = end + 494;
 		}
 	}
 

@@ -22,7 +22,7 @@ class UDPClient {
 		BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
 		DatagramSocket clientSocket = new DatagramSocket();
 		InetAddress IPAddress = null;
-		byte[] sendData = new byte[128];
+		byte[] sendData = new byte[512];
 		byte[] emptyData = new byte[128];
 		byte[] receiveData = new byte[128];
 		String serverIP;
@@ -31,25 +31,12 @@ class UDPClient {
 		double lossProb;
 		double corruptProb;
 		double delayProb;
-		double delayInMilliseconds;
-		Gremlin gremlin = new Gremlin(lossProb, corruptProb, delayProb);
+		double delayInMilliseconds = 0.0;
+		
 
 		Scanner scan = new Scanner(System.in);
 		
-		System.out.print("Enter the probability of a lost packet: ");
-		lossProb = scan.nextDouble();
-		
-		System.out.print("Enter the probability of a corrupted packet: ");
-		corruptProb = scan.nextDouble();
-		
-		System.out.print("Enter the probability of a delayed packet: ");
-		delayProb = scan.nextDouble();
-		
-		if(delayProb > 0)
-		{
-			System.out.print("Enter the length of delay for delayed packets: ");
-			delayInMilliseconds = scan.nextDouble();
-		}
+
 		while(true){		
 			System.out.print("Enter the IP Adress: ");
 			serverIP = scan.nextLine();
@@ -76,6 +63,22 @@ class UDPClient {
 
 		File file = new File(System.getProperty("user.dir"), request[1]);
 
+		System.out.print("Enter the probability of a lost packet: ");
+		lossProb = scan.nextDouble();
+		
+		System.out.print("Enter the probability of a corrupted packet: ");
+		corruptProb = scan.nextDouble();
+		
+		System.out.print("Enter the probability of a delayed packet: ");
+		delayProb = scan.nextDouble();
+		
+		if(delayProb > 0)
+		{
+			System.out.print("Enter the length of delay for delayed packets: ");
+			delayInMilliseconds = scan.nextDouble();
+		}
+
+		Gremlin gremlin = new Gremlin(lossProb, corruptProb, delayProb, delayInMilliseconds);
 		
 		sendData = sentence.getBytes();
 		DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, serverPortNumber);
@@ -87,7 +90,7 @@ class UDPClient {
 		int localPortNum = clientSocket.getLocalPort();
 		clientSocket.close();
 
-		GoBackN gbn = new GoBackN(localPortNum, IPAddress, serverPortNumber, gremlin);
+		GoBackNClient gbn = new GoBackNClient(localPortNum, IPAddress, serverPortNumber, gremlin);
 		gbn.beginTransmission();
 
 		ClientSegAndReassembly csar = new ClientSegAndReassembly();
@@ -126,7 +129,7 @@ class UDPClient {
 
 		String fileData = csarData.substring(index + 1);
 		int emptyIndex = csarData.indexOf(0);
-		String dataFromFile "";
+		String dataFromFile = "";
 		if(emptyIndex != -1){
 			dataFromFile = fileData.subSequence(0, emptyIndex).toString();
 		}

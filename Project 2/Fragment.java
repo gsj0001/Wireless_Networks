@@ -74,7 +74,7 @@ public class Fragment {
 		public byte[] getHeaderBytes(){
 			byte[] headerByteArray = Arrays.copyOf(mCheckSum, mCheckSum.length + 2);
 			headerByteArray[mCheckSum.length] = getSequenceID();
-			headerByteArray[mCheckSum.length+1] = getmEndOfSequence();
+			headerByteArray[mCheckSum.length + 1] = getmEndOfSequence();
 			return headerByteArray;
 		}
 		

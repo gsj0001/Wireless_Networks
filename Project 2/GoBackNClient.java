@@ -19,11 +19,11 @@ public class GoBackNClient {
 	Fragment[] segWindow = new Fragment[32];
 
 
-	int recieve_base = 0;
-	int window_base = 3;
+	int currentReceiveIndex = 0;
+	int windowIndex = 3;
 
-	int sucessfully_received=0;
-	int unsucessfully_received=0; 
+	int sucessfully_received = 0;
+	int unsucessfully_received = 0; 
 	//constants in the SR
 	int localPortNumber;
 	int serverPortNumber;
@@ -43,27 +43,30 @@ public class GoBackNClient {
 	 * @param remote_Port - Port on Server side
 	 * @param grem is the Gremlin Used inside SR
 	 */
-	public GoBackNClient(int local_Port,InetAddress server_IP, int remote_Port, Gremlin grem, boolean traceOPT){
+	public GoBackNClient(int local_Port,InetAddress server_IP, int remote_Port, Gremlin grem){
 		gremlin = grem;
 
-		for(int i =0; i<ackBuffer.length; i++){
-			ackBuffer[i] = "N"+i;
+		for(int i = 0; i < ackBuffer.length; i++){
+			ackBuffer[i] = "N" + i;
 		}
+
 		localPortNumber = local_Port;
 		serverPortNumber = remote_Port;
 		serverIP = server_IP;
+
 		try {
 			clientSocket = new DatagramSocket(localPortNumber);
+
 		} catch (SocketException e) {
 			e.printStackTrace();
 		}
-		trace = traceOPT;
+		//trace = traceOPT;
 	}
 
 	/**
 	 * @return
 	 */
-	public ArrayList<Fragment> getFragmentList(){
+	public ArrayList<Fragment> getFragList(){
 		return fragList;
 	}
 
@@ -80,7 +83,7 @@ public class GoBackNClient {
 			}
 			System.out.println(Arrays.toString(ackBuffer));
 
-			byte[] receiveData = new byte[128];
+			byte[] receiveData = new byte[512];
 			DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 			receivePacket = new DatagramPacket(receiveData, receiveData.length);
 			try {
@@ -97,10 +100,10 @@ public class GoBackNClient {
 				Fragment temp = convertToFrag(receivePacket);
 				int sequenceID = temp.getmHeader().getSequenceID();
 				//Use Checksum to validate fragment
-				System.out.println("Seq no considered: "+sequenceID);
-				boolean behindrcvbase =(sequenceID >=(recieve_base-4)%32 && sequenceID <= (recieve_base-1)%32); 
-				boolean inwindow =(sequenceID >= recieve_base && sequenceID <=window_base);
-				boolean inwindowmodulo = (sequenceID <= 31 && recieve_base>window_base);
+				System.out.println("Sequence # : " + sequenceID);
+				boolean behindrcvbase =(sequenceID >= (currentReceiveIndex - 4) % 32 && sequenceID <= (currentReceiveIndex - 1) % 32); 
+				boolean inwindow = (sequenceID >= currentReceiveIndex && sequenceID <= windowIndex);
+				boolean inwindowmodulo = (sequenceID <= 31 && currentReceiveIndex > windowIndex);
 				boolean validfragment = ErrorDetector.validateCheckSum(temp);
 				System.out.println("Is Fragment Valid: "+ validfragment);
 				
@@ -108,11 +111,11 @@ public class GoBackNClient {
 						if(behindrcvbase || inwindow || inwindowmodulo){
 
 						//Update acknowledgementBuffer and send ACK to Server
-						ackBuffer[sequenceID]= "A"+sequenceID;
+						ackBuffer[sequenceID]= "A" + sequenceID;
 						segWindow[sequenceID] = temp;
 						sendAcknowledgements();
 						//If this is the first Sequence ID in the pane then we can move the window down one
-						if(sequenceID == recieve_base){
+						if(sequenceID == currentReceiveIndex){
 							incrementWindowPosition();
 						}
 						sucessfully_received++;
@@ -140,14 +143,14 @@ public class GoBackNClient {
 	}
 		return null;
 	}
-	
+
 	/**
 	 * Transmits a vector of ACks and NAKs back to the server after each fragment is received
 	 */
 	public void sendAcknowledgements(){
 		ArrayList<String> ackVector = new ArrayList<String>();
-		for (int i = 0; i < 4; i++) {
-			ackVector.add(ackBuffer[(recieve_base + i)%32]);
+		for (int i = 0; i < 32; i++) {
+			ackVector.add(ackBuffer[(currentReceiveIndex + i) % 32]);
 		}
 
 		byte[] tes = null;
@@ -188,19 +191,22 @@ public class GoBackNClient {
 	 * Moves the receive window over one position
 	 */
 	public void incrementWindowPosition() {		
-		while(ackBuffer[recieve_base].startsWith("A")){
+		while(ackBuffer[currentReceiveIndex].startsWith("A")){
 			//This will be used to decide when to close the connection
-			lastFragmentRecieved = (segWindow[recieve_base].getmHeader().getmEndOfSequence() == 1)?true:false;
+			lastFragmentRecieved = (segWindow[currentReceiveIndex].getmHeader().getmEndOfSequence() == 1)?true:false;
+
 			if(lastFragmentRecieved){
 				System.out.println("sf");
 			}
+
 			//Adds the Ordered Fragment into the FragementList
-			fragList.add(segWindow[recieve_base]);
-			recieve_base = (recieve_base + 1) % 32;
-			window_base = (window_base + 1) % 32;
+			fragList.add(segWindow[currentReceiveIndex]);
+			currentReceiveIndex = (currentReceiveIndex + 1) % 32;
+			windowIndex = (windowIndex + 1) % 32;
+
 			//Always keeps the area outside of the pane ready
-			ackBuffer[window_base] = "N"+window_base;
-			segWindow[window_base] = null;
+			ackBuffer[windowIndex] = "N" + windowIndex;
+			segWindow[windowIndex] = null;
 		}
 	}
 
