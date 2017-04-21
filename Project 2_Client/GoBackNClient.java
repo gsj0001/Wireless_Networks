@@ -11,6 +11,9 @@ import java.util.Arrays;
 
 
 public class GoBackNClient {
+	
+	private final static boolean enableTestLogging = true;
+	
 	//list of acknowledgments
 	String[] ackBuffer = new String[32];
 	//ordered Fragments
@@ -75,8 +78,16 @@ public class GoBackNClient {
 	 * received from the server. Stores the fragments in the fragment list
 	 */
 	public void beginTransmission(){
+		if(enableTestLogging)
+		{
+			System.out.println("Beginning transmission");
+		}
 		//loop until the last fragment is recieved
 		while(!lastFragmentRecieved){
+			if(enableTestLogging)
+			{
+				System.out.println("The last fragment has NOT been received.");
+			}
 			if(trace){
 				System.out.println("Fragment: "+ sucessfully_received +" "+"Recieved -- intact" );
 				System.out.println("Fragment: "+ unsucessfully_received +" "+"Recieved -- damaged" );
@@ -119,10 +130,18 @@ public class GoBackNClient {
 							incrementWindowPosition();
 						}
 						sucessfully_received++;
+						if(enableTestLogging)
+						{
+							System.out.println("Packet of sequence ID " + sequenceID + " has been successfully transmitted.");
+						}
 					}else{
 						//send acknowledgment if the fragment was corrupted
 						sendAcknowledgements();
 						unsucessfully_received++;
+						if(enableTestLogging)
+						{
+							System.out.println("Packet of sequence ID " + sequenceID + "has NOT been succesfully transmitted. (corruption)");
+						}
 					}
 						
 				}
@@ -151,6 +170,10 @@ public class GoBackNClient {
 		ArrayList<String> ackVector = new ArrayList<String>();
 		for (int i = 0; i < 32; i++) {
 			ackVector.add(ackBuffer[(currentReceiveIndex + i) % 32]);
+		}
+		if(enableTestLogging)
+		{
+			System.out.println("Sending Acknowledgment array: " + ackVector);
 		}
 
 		byte[] tes = null;
@@ -190,7 +213,11 @@ public class GoBackNClient {
 	/**
 	 * Moves the receive window over one position
 	 */
-	public void incrementWindowPosition() {		
+	public void incrementWindowPosition() {
+		if(enableTestLogging)
+		{
+			System.out.println("Incrementing window position from: " + windowIndex);
+		}
 		while(ackBuffer[currentReceiveIndex].startsWith("A")){
 			//This will be used to decide when to close the connection
 			lastFragmentRecieved = (segWindow[currentReceiveIndex].getmHeader().getmEndOfSequence() == 1)?true:false;
@@ -207,6 +234,10 @@ public class GoBackNClient {
 			//Always keeps the area outside of the pane ready
 			ackBuffer[windowIndex] = "N" + windowIndex;
 			segWindow[windowIndex] = null;
+		}
+		if(enableTestLogging)
+		{
+			System.out.println("Incremented to: " + windowIndex);
 		}
 	}
 

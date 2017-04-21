@@ -18,6 +18,7 @@ import java.security.MessageDigest;
 
 class UDPClient {
 	public static void main(String args[]) throws Exception {
+		private final static boolean enableTestLogging = true;
 
 		BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
 		DatagramSocket clientSocket = new DatagramSocket();
