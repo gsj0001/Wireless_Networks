@@ -16,6 +16,7 @@ public class GoBackNClient {
 	
 	//list of acknowledgments
 	String[] ackBuffer = new String[32];
+	String currentAck = "A00";
 	//ordered Fragments
 	ArrayList<Fragment> fragList = new ArrayList<Fragment>();
 	//unordered Fragments more or a buffer
@@ -123,12 +124,14 @@ public class GoBackNClient {
 
 						//Update acknowledgementBuffer and send ACK to Server
 						ackBuffer[sequenceID]= "A" + sequenceID;
+						
+						currentAck = "A" + sequenceID
+								
 						segWindow[sequenceID] = temp;
-						sendAcknowledgements();
+//						sendAcknowledgements();
+						sendAck();
 						//If this is the first Sequence ID in the pane then we can move the window down one
-						if(sequenceID == currentReceiveIndex){
-							incrementWindowPosition();
-						}
+						incrementWindowPosition();
 						sucessfully_received++;
 						if(enableTestLogging)
 						{
@@ -136,7 +139,9 @@ public class GoBackNClient {
 						}
 					}else{
 						//send acknowledgment if the fragment was corrupted
-						sendAcknowledgements();
+					//	sendAcknowledgements();
+						currentAck = "N" + sequenceID;
+						sendAck();
 						unsucessfully_received++;
 						if(enableTestLogging)
 						{
@@ -166,48 +171,81 @@ public class GoBackNClient {
 	/**
 	 * Transmits a vector of ACks and NAKs back to the server after each fragment is received
 	 */
-	public void sendAcknowledgements(){
-		ArrayList<String> ackVector = new ArrayList<String>();
-		for (int i = 0; i < 32; i++) {
-			ackVector.add(ackBuffer[(currentReceiveIndex + i) % 32]);
-		}
-		if(enableTestLogging)
-		{
-			System.out.println("Sending Acknowledgment array: " + ackVector);
-		}
-
+//	public void sendAcknowledgements(){
+//		ArrayList<String> ackVector = new ArrayList<String>();
+//		for (int i = 0; i < 32; i++) {
+//			ackVector.add(ackBuffer[(currentReceiveIndex + i) % 32]);
+//		}
+//		if(enableTestLogging)
+//		{
+//			System.out.println("Sending Acknowledgment array: " + ackVector);
+//		}
+//
+//		byte[] tes = null;
+//
+//		ByteArrayOutputStream objbytetest = new ByteArrayOutputStream();
+//		ObjectOutputStream objout;
+//
+//		String[] tempAckVector = new String[ackVector.size()];
+//		tempAckVector = ackVector.toArray(tempAckVector);
+//		if(trace){
+//			System.out.println(Arrays.toString(tempAckVector) + " Transmitted");
+//		}
+//		try {
+//			objout = new ObjectOutputStream(objbytetest);
+//			objout.writeObject(tempAckVector);
+//			objout.flush();
+//			objout.close();
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//		tes = objbytetest.toByteArray();
+//		try {
+//			objbytetest.flush();
+//			objbytetest.close();
+//		} catch (IOException e1) {
+//			e1.printStackTrace();
+//		}
+//		//send Acknowledgment buffer to the server
+//		DatagramPacket sendPacket = new DatagramPacket(tes, tes.length, serverIP, serverPortNumber);
+//		try {
+//			clientSocket.send(sendPacket);
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//	}
+	//sends an ACK or NAK, with the sequence #
+	public void sendAck()
+	{
 		byte[] tes = null;
-
-		ByteArrayOutputStream objbytetest = new ByteArrayOutputStream();
-		ObjectOutputStream objout;
-
-		String[] tempAckVector = new String[ackVector.size()];
-		tempAckVector = ackVector.toArray(tempAckVector);
-		if(trace){
-			System.out.println(Arrays.toString(tempAckVector) + " Transmitted");
-		}
-		try {
-			objout = new ObjectOutputStream(objbytetest);
-			objout.writeObject(tempAckVector);
-			objout.flush();
-			objout.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		tes = objbytetest.toByteArray();
-		try {
-			objbytetest.flush();
-			objbytetest.close();
-		} catch (IOException e1) {
-			e1.printStackTrace();
-		}
-		//send Acknowledgment buffer to the server
-		DatagramPacket sendPacket = new DatagramPacket(tes, tes.length, serverIP, serverPortNumber);
-		try {
-			clientSocket.send(sendPacket);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		
+				ByteArrayOutputStream objbytetest = new ByteArrayOutputStream();
+				ObjectOutputStream objout;
+				if(trace){
+					System.out.println(currentAck + " Transmitted");
+				}
+				try {
+					objout = new ObjectOutputStream(objbytetest);
+					objout.writeObject(currentAck);
+					objout.flush();
+					objout.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				tes = objbytetest.toByteArray();
+				try {
+					objbytetest.flush();
+					objbytetest.close();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+				//send Acknowledgment buffer to the server
+				DatagramPacket sendPacket = new DatagramPacket(tes, tes.length, serverIP, serverPortNumber);
+				try {
+					clientSocket.send(sendPacket);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 	}
 
 	/**
