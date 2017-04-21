@@ -23,6 +23,8 @@ public class GoBackNServer {
 	final int BUFFER_AMT = 512;
 	final int SERVER_PORT_NUMBER = 10077;
 	final int windowSize = 32;
+	
+	private final static boolean enableTestLogging = true;
 
 	//client information needed for sending
 	int clientPortNumber;
@@ -94,6 +96,10 @@ public class GoBackNServer {
 	 * to the client as well dequeues the naks to send those fragments to the client.
 	 */
 	public void beginTransmission(){
+		if(enableTestLogging)
+		{
+			System.out.println("Beginning transmission");
+		}
 
 		countDownTimer = new Timer();
 		countDownTimer.schedule(new PerTickBookKeeping(), 1,1);
@@ -147,6 +153,10 @@ public class GoBackNServer {
 	 * @param acknowledgmentArray the string array that is from the client
 	 */
 	public void updateServerAcknowledgmentArray(String[] acknowledgmentArray){
+		if(enableTestLogging)
+		{
+			System.out.println("Updating Server Acknowledgment Array with : " + acknowledgmentArray);
+		}
 		int ackSequenceID;
 		boolean isACK = false;
 		boolean isLastFragmentAcknowledged = false;
@@ -181,6 +191,10 @@ public class GoBackNServer {
 	 * @return String filled with acknowledgments that are recieved from the reciever
 	 */
 	public String[] recieveAcknowledgment(byte[] acknowledgment){
+		if(enableTestLogging)
+		{
+			System.out.println("Receiving acknowledgement: " + acknowledgement);
+		}
 		ByteArrayInputStream bytein = new ByteArrayInputStream(acknowledgment);
 		ObjectInputStream objin = null;
 		String[] ackArray = null;
@@ -199,6 +213,11 @@ public class GoBackNServer {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		if(enableTestLogging)
+		{
+			System.out.println("AckArray updated: " + ackArray);
+		}
+		
 		return ackArray;
 	}
 
@@ -206,6 +225,10 @@ public class GoBackNServer {
 	 * A Run once Method to fill the window with Fragments
 	 */
 	public void fillFragmentWindow(){
+		if(enableTestLogging)
+		{
+			System.out.println("Filling Fragment Window");
+		}
 		for(int i = 0; i < 32; i++){
 			if(segFragments.hasNext()){
 						
@@ -215,12 +238,20 @@ public class GoBackNServer {
 				break;
 			}
 		}
+		if(enableTestLogging)
+		{
+			System.out.println("Fragment Window filled: " + fragmentWindow);
+		}
 	}
 
 	/**
 	 * Moves the Window Position over.
 	 */
 	public void incrementWindowPosition(){
+		if(enableTestLogging)
+		{
+			System.out.println("Incrementing Window Position from: " + windowIndex);
+		}
 		while(ackBuffer[currentSendIndex].startsWith("A")){
 
 			currentSendIndex = (currentSendIndex + 1) % 32;
@@ -237,6 +268,11 @@ public class GoBackNServer {
 				fragmentWindow[windowIndex] = null;
 			}
 		}
+		
+		if(enableTestLogging)
+		{
+			System.out.println("New Window Index is: " + windowIndex);
+		}
 
 	}
 
@@ -244,6 +280,10 @@ public class GoBackNServer {
 	 * Closes the connections and thread that was used for this class
 	 */
 	public void closeConnection(){
+		if(enableTestLogging)
+		{
+			System.out.println("Closing Connection");
+		}
 		countDownTimer.cancel();
 		countDownTimer.purge();
 		serverSocket.close();

@@ -18,7 +18,7 @@ class UDPServer {
 	private static String typeOfFile;
 	private static int code;
 	private final static String http = "HTTP/1.0";
-	
+	private final static boolean enableTestLogging = true;
 	
 	public static void main(String args[]) throws Exception {
 		
@@ -50,6 +50,10 @@ class UDPServer {
 				HeaderString(Integer.toString(FileLengthCalc(ERROR_TXT)), 400, GenerateFileType(ERROR_TXT));
 			}
 			else {
+				if(enableTestLogging)
+				{
+					System.out.println("LOG: Header String validated.");
+				}
 				
 				methodTokenValid = isMethodTokenValid(request[0]);
 				fileExist = checkFileExistence(request[1]);
@@ -72,6 +76,11 @@ class UDPServer {
 			
 			String headerAndData = new String(headerInformation + "\r\n"+ htmlDocumentBuffer);
 			byte[] headerAndDataByteArray = headerAndData.getBytes();
+			
+			if(enableTestLogging)
+			{
+				System.out.println("LOG: Document found!");
+			}
 			
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
 			out.write(headerAndDataByteArray);
@@ -110,6 +119,11 @@ class UDPServer {
 		if(fileNameAndPath == null){
 			return false;
 		}
+		if(enableTestLogging)
+		{
+			System.out.println("LOG: File name " + fileNameAndPath + "exists!");
+		}
+		
 		File file = new File(System.getProperty("user.dir") + "/"+fileNameAndPath);
 		return file.exists();
 	}
@@ -120,7 +134,11 @@ class UDPServer {
 		for(String methodToken : MethodTokenList){
 			if(requestMethodToken.toUpperCase().equalsIgnoreCase(methodToken)){
 				return true;
-			}	
+			}
+			if(enableTestLogging)
+			{
+				System.out.println("LOG: Method Token " + methodToken + "is valid!");
+			}
 		}
 		return false;
 	}
