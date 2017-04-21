@@ -13,20 +13,16 @@ import java.io.ByteArrayOutputStream;
 public class GoBackNServer {
 	ServerSegAndReassembly segFragments; //has the separated fragments
 
-	int sucessfully_transmitted=0;
-	int notTransmitted =0;
+	int sucessfully_transmitted = 0;
+	int notTransmitted = 0;
 	int currentSendIndex = 0;
 	int windowIndex = 0;
 	int currentSequenceNumber = 0;
-	int nakIndex = null;
-	String currentAck; 
 
 	//constants
-	final int BUFFER_AMT = 512;
+	final int BUFFER_SIZE = 512;
 	final int SERVER_PORT_NUMBER = 10077;
 	final int windowSize = 32;
-	
-	private final static boolean enableTestLogging = true;
 
 	//client information needed for sending
 	int clientPortNumber;
@@ -44,7 +40,7 @@ public class GoBackNServer {
 
 	Timer countDownTimer;
 
-	boolean mTrace;
+	boolean willTrace;
 
 	//Constructor
 	/**
@@ -57,7 +53,6 @@ public class GoBackNServer {
 		segFragments = sar;
 		clientPortNumber = client_port;
 		clientIPAddr = ipAddress;
-		//mTrace = trace; 
 
 		try {
 			serverSocket = new DatagramSocket(SERVER_PORT_NUMBER);
@@ -65,9 +60,9 @@ public class GoBackNServer {
 			e.printStackTrace();
 		}
 
-		// for(int i = 0; i < ackBuffer.length; i++){
-		// 	ackBuffer[i] = "N" + i;
-		// }
+		for(int i = 0; i < ackBuffer.length; i++){
+			ackBuffer[i] = "N" + i;
+		}
 
 		fillFragmentWindow();
 	}
@@ -84,7 +79,7 @@ public class GoBackNServer {
 
 			try {
 				serverSocket.send(sendPacket);
-				eventTimerArray[pos%4] = new EventTime(pos, 30);
+				eventTimerArray[pos % 4] = new EventTime(pos, 30);
 
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -98,21 +93,18 @@ public class GoBackNServer {
 	 * to the client as well dequeues the naks to send those fragments to the client.
 	 */
 	public void beginTransmission(){
-		if(enableTestLogging)
-		{
-			System.out.println("Beginning transmission");
-		}
 
 		countDownTimer = new Timer();
-		countDownTimer.schedule(new TimerForEachSeg(), 1,1);
+		countDownTimer.schedule(new PerTickBookKeeping(), 1,1);
 
 		for(int i = 0; i < windowSize ; i++){
 			sendFragment(i);
 		}
 
 		while(!CLIENTRECIEVEDALLDATA){
-			byte[] receiveData = new byte[BUFFER_AMT];
-			if(mTrace){
+			byte[] receiveData = new byte[BUFFER_SIZE];
+
+			if(willTrace){
 				System.out.println("Fragment: "+ sucessfully_transmitted +" "+"Transmitted -- intact" );
 				System.out.println("Fragment: "+ notTransmitted +" " +"Transmitted -- damaged" );
 			}
@@ -125,36 +117,20 @@ public class GoBackNServer {
 				e.printStackTrace();
 			}
 
-			String receivedAck = recieveAcknowledgment(Arrays.copyOf(receivePacket.getData(), receivePacket.getLength()));
-			currentAck = receivedAck;
-
-			if(currentAck.startsWith("A")){
+			String[] acknowledgments = recieveAcknowledgment(Arrays.copyOf(receivePacket.getData(), receivePacket.getLength()));
+			updateServerAcknowledgmentArray(acknowledgments);
+			
+			if(ackBuffer[currentSendIndex].startsWith("A")){
 				incrementWindowPosition();
 			}
 
-			if(currentAck.starsWith("N")){
-				if (nakIndex == null){
-					nakIndex = windowIndex;
-				}
-				incrementWindowPosition();
-				notTransmitted++;
+			for(int i = 0; i < windowSize; i++){
 
-				for (nakIndex; nakIndex < windowSize; nakIndex++){
-					sendFragment(nakIndex % 32);
+				if(ackBuffer[(currentSendIndex + i) % 32].startsWith("N")){
+					sendFragment((currentSendIndex + i) % 32);
+					notTransmitted ++;
 				}
 			}
-
-			if(windowIndex == nakIndex){
-				nakIndex = null;
-			}
-
-			// for(int i = 0; i < windowSize; i++){
-
-			// 	if(ackBuffer[(currentSendIndex + i) % 32].startsWith("N")){
-			// 		sendFragment((currentSendIndex + i) % 32);
-			// 		notTransmitted ++;
-			// 	}
-			// }
 
 			//resetting the receive Data variable
 			receiveData = null;
@@ -171,10 +147,6 @@ public class GoBackNServer {
 	 * @param acknowledgmentArray the string array that is from the client
 	 */
 	public void updateServerAcknowledgmentArray(String[] acknowledgmentArray){
-		if(enableTestLogging)
-		{
-			System.out.println("Updating Server Acknowledgment Array with : " + acknowledgmentArray);
-		}
 		int ackSequenceID;
 		boolean isACK = false;
 		boolean isLastFragmentAcknowledged = false;
@@ -208,18 +180,14 @@ public class GoBackNServer {
 	 * @param acknowledgment
 	 * @return String filled with acknowledgments that are recieved from the reciever
 	 */
-	public String recieveAcknowledgment(byte[] acknowledgment){
-		if(enableTestLogging)
-		{
-			System.out.println("Receiving acknowledgement: " + acknowledgement);
-		}
+	public String[] recieveAcknowledgment(byte[] acknowledgment){
 		ByteArrayInputStream bytein = new ByteArrayInputStream(acknowledgment);
 		ObjectInputStream objin = null;
-		String ackOrNak = null;
+		String[] ackArray = null;
 
 		try {
 			objin = new ObjectInputStream(bytein);
-			ackOrNak = (String)objin.readObject();
+			ackArray = (String[])objin.readObject();
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (ClassNotFoundException e) {
@@ -231,22 +199,13 @@ public class GoBackNServer {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		if(enableTestLogging)
-		{
-			System.out.println("Acknowledgment Received: " + ackOrNak);
-		}
-		
-		return ackOrNak;
+		return ackArray;
 	}
 
 	/**
 	 * A Run once Method to fill the window with Fragments
 	 */
 	public void fillFragmentWindow(){
-		if(enableTestLogging)
-		{
-			System.out.println("Filling Fragment Window");
-		}
 		for(int i = 0; i < 32; i++){
 			if(segFragments.hasNext()){
 						
@@ -256,23 +215,17 @@ public class GoBackNServer {
 				break;
 			}
 		}
-		if(enableTestLogging)
-		{
-			System.out.println("Fragment Window filled: " + fragmentWindow);
-		}
 	}
 
 	/**
 	 * Moves the Window Position over.
 	 */
 	public void incrementWindowPosition(){
-		if(enableTestLogging)
-		{
-			System.out.println("Incrementing Window Position from: " + windowIndex);
-		}
+		while(ackBuffer[currentSendIndex].startsWith("A")){
 
 			currentSendIndex = (currentSendIndex + 1) % 32;
 			windowIndex = (windowIndex + 1) % 32;
+			ackBuffer[windowIndex] = "N" + windowIndex;
 
 			if(segFragments.hasNext()){
 				fragmentWindow[windowIndex] = segFragments.next();
@@ -280,15 +233,9 @@ public class GoBackNServer {
 				if(testForLastFragment){
 					lastFragmentInIndex = windowIndex;
 				}
-
 			}else{
 				fragmentWindow[windowIndex] = null;
 			}
-
-		
-		if(enableTestLogging)
-		{
-			System.out.println("New Window Index is: " + windowIndex);
 		}
 
 	}
@@ -297,10 +244,6 @@ public class GoBackNServer {
 	 * Closes the connections and thread that was used for this class
 	 */
 	public void closeConnection(){
-		if(enableTestLogging)
-		{
-			System.out.println("Closing Connection");
-		}
 		countDownTimer.cancel();
 		countDownTimer.purge();
 		serverSocket.close();
@@ -308,7 +251,7 @@ public class GoBackNServer {
 
 
 	
-	class  TimerForEachSeg extends TimerTask{
+	class  PerTickBookKeeping extends TimerTask{
 		@Override
 		synchronized public void run() {
 			for(int i = 0; i < eventTimerArray.length; i++){
@@ -321,12 +264,12 @@ public class GoBackNServer {
 						int tempID = eventTimerArray[i].eventID;
 						eventTimerArray[i] = null;
 						
-						if(currentAck.startsWith("N")){
+						if(ackBuffer[tempID].startsWith("N")){
 							sendFragment(tempID);
 						}
 					}
 				}
-			}
+			}//endfor
 		}
 	}
 }
