@@ -24,7 +24,8 @@ public class GoBackNClient {
 
 
 	int currentReceiveIndex = 0;
-	int windowIndex = 3;
+	int windowIndex = 0;
+	int nakIndex = null;
 
 	int sucessfully_received = 0;
 	int unsucessfully_received = 0; 
@@ -140,8 +141,11 @@ public class GoBackNClient {
 					}else{
 						//send acknowledgment if the fragment was corrupted
 					//	sendAcknowledgements();
+						if(nakIndex == null)
+							nakIndex = windowIndex;
 						currentAck = "N" + sequenceID;
 						sendAck();
+						incrementWindowPosition();
 						unsucessfully_received++;
 						if(enableTestLogging)
 						{
@@ -256,21 +260,28 @@ public class GoBackNClient {
 		{
 			System.out.println("Incrementing window position from: " + windowIndex);
 		}
-		while(ackBuffer[currentReceiveIndex].startsWith("A")){
+		if(currentAck.startsWith("A")){
 			//This will be used to decide when to close the connection
 			lastFragmentRecieved = (segWindow[currentReceiveIndex].getmHeader().getmEndOfSequence() == 1)?true:false;
 
 			if(lastFragmentRecieved){
 				System.out.println("sf");
 			}
-
-			//Adds the Ordered Fragment into the FragementList
-			fragList.add(segWindow[currentReceiveIndex]);
-			currentReceiveIndex = (currentReceiveIndex + 1) % 32;
-			windowIndex = (windowIndex + 1) % 32;
+			if(nakIndex != windowIndex)
+			{
+				//Adds the Ordered Fragment into the FragementList
+				fragList.add(segWindow[currentReceiveIndex]);
+				currentReceiveIndex = (currentReceiveIndex + 1) % 32;
+				windowIndex = (windowIndex + 1) % 32;
+			}
 
 			//Always keeps the area outside of the pane ready
-			ackBuffer[windowIndex] = "N" + windowIndex;
+	//		ackBuffer[windowIndex] = "N" + windowIndex;
+			segWindow[windowIndex] = null;
+		}
+		else
+		{
+			windowIndex = (windowIndex + 1) % 32;
 			segWindow[windowIndex] = null;
 		}
 		if(enableTestLogging)
